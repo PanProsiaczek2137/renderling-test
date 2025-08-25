@@ -1,6 +1,3 @@
-// src/lib.rs
-//#![cfg(target_arch = "wasm32")]
-
 use anyhow::Ok;
 use wasm_bindgen::prelude::*;
 use std::sync::Arc;
@@ -21,9 +18,6 @@ use winit::{
 
 const WASM_CANVAS_ID: &str = "app-canvas";
 const WASM_CREATE_WINDOW: bool = true;
-
-
-
 
 #[derive(Default)]
 pub struct State {
@@ -62,11 +56,9 @@ impl State {
     pub async fn new(
         window_option: std::sync::Arc<winit::window::Window>,
     ) -> anyhow::Result<Self> {
-                // 2) Kontekst renderling powiązany z oknem
+
         #[cfg(target_arch = "wasm32")]
         let ctx  = Context::from_window_async(None, window_option.clone()).await;
-        //#[cfg(target_arch = "wasm32")]
-        //let ctx: Context = pollster::block_on(ctx_future);
 
         #[cfg(not(target_arch = "wasm32"))]
         let ctx = Context::from_window(None, window_option.clone());
@@ -127,8 +119,7 @@ impl State {
 
 
 
-
-        // --- Twój stary kod: trójkąty testowe ---
+        // --- stary kod: trójkąty testowe ---
         let vertices = stage.new_array([
             Vertex::default()
                 .with_position([0.0, 0.0, 0.0])
@@ -146,10 +137,6 @@ impl State {
             vertices_array: vertices.array(),
             ..Default::default()
         });
-
-
-
-
 
 
 
@@ -214,30 +201,6 @@ impl State {
 
 
 
-
-
-        //         // 1) Wczytaj obraz (PNG/JPG/HDR też wspierane):
-        // let atlas_img3 = AtlasImage::from_path("assets/Bez_tytułu.png")
-        //     .expect("Nie udało się wczytać assets/Bez_tytułu.png"); // ⬅️ podmień ścieżkę, jeśli chcesz
-
-        // // 2) Dodaj do atlasu – dostaniesz Vec<Hybrid<AtlasTexture>>
-        // let mut atlas_textures3 = stage.add_images([atlas_img3, ])
-        //     .expect("Nie udało się dodać obrazu do atlasu");
-
-        // // Wyjmij pierwszą teksturę (naszą):
-        // let atlas_tex3 = atlas_textures3.remove(0);
-
-        // // 3) Zbuduj materiał z przypiętą teksturą albedo:
-        // let mut mat3 = Material::default();
-        // mat3.albedo_texture_id = atlas_tex3.id();  // ⬅️ najważniejsza linia
-
-        // // 4) Zastage’uj materiał, żeby mieć material_id:
-        // let mat3 = stage.new_value(mat3);
-
-
-
-
-
         let triangle2 = stage.new_value(Renderlet {
             camera_id: camera.id(),
             vertices_array: vertices2.array(),
@@ -251,24 +214,6 @@ impl State {
             material_id: mat3.id(),
             ..Default::default()
         });
-
-
-
-
-
-
-
-        
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -292,38 +237,10 @@ impl State {
 
 
 
-
         stage.set_lights([sun_link.id(), lamp_link.id()]);
         stage.add_renderlet(&triangle);
         stage.add_renderlet(&triangle2);
         stage.add_renderlet(&triangle3);
-        
-        // 8) Zachowaj w stanie aplikacji
-        //state.window = Some(window);
-        // state.ctx = Some(ctx);
-        // state.stage = Some(stage);
-        // state.camera = Some(camera);
-
-        // state.vertices = Some(vertices);
-        // state.triangle = Some(triangle);
-
-        // state.vertices2 = Some(vertices2);
-        // state.triangle2 = Some(triangle2);
-        // state.vertices3 = Some(vertices3);
-        // state.triangle3 = Some(triangle3);
-        // state.material2 = Some(mat2);
-        // state.material3 = Some(mat3);
-        // state.tex2 = Some(albedo_tex2);
-        // state.tex3 = Some(albedo_tex3);
-
-        // state.sun = Some(sun);
-        // state.sun_link = Some(sun_link);
-        // state.lamp = Some(lamp);
-        // state.lamp_link = Some(lamp_link);
-
-        // if let Some(w) = &state.window {
-        //     w.request_redraw();
-        // }
 
         Ok(State {
             window: Some(window_option),
@@ -377,16 +294,6 @@ pub struct App {
 impl ApplicationHandler<CustomUserEvent> for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
 
-        // // 1) Okno
-        // #[cfg(not(target_arch = "wasm32"))]
-        // let attrs = WindowAttributes::default()
-        //     .with_title("Renderling + Winit — Triangle + GLB")
-        //     .with_inner_size(winit::dpi::PhysicalSize::new(800, 600))
-        //     .with_transparent(true);
-
-        // let window = Arc::new(event_loop.create_window(attrs).expect("create window"));
-
-        
         #[allow(unused_variables, unused_mut)]
         let mut window_attributes = winit::window::Window::default_attributes();
 
@@ -434,9 +341,6 @@ impl ApplicationHandler<CustomUserEvent> for App {
             }
         }
 
-
-        
-
         let _ = self.state;
 
     }
@@ -448,32 +352,7 @@ impl ApplicationHandler<CustomUserEvent> for App {
     ) {
         match event {
             CustomUserEvent::StateInitialized(state) => {
-                // //#[cfg(target_arch = "wasm32")]
-                // {
-                //     // for (_id, window_data) in state.windows.iter() {
-                //     //     window_data.window.request_redraw();
-                //     //     log::info!("A Canvas size: {}x{}", window_data.window.inner_size().width, window_data.window.inner_size().height);
-                //     // }
-
-                //     // Następnie, po pętli, potencjalnie pobierz rozmiar z określonego okna
-                //     // i zmień rozmiar powierzchni (mutowalne pożyczenie stanu).
-                //     // Zakłada to, że state.resize aktualizuje *pojedynczą* konfigurację powierzchni dla obiektu State.
-                //     if let Some(main_window_data) = state.windows.get(&0) {
-                //         // Zakładając, że ID 0 to główne okno
-                //         let main_window = main_window_data.window.clone();
-                //         main_window.request_redraw();
-                //         state.resize(
-                //             // To jest mutowalne pożyczenie, teraz dozwolone
-                //             0,
-                //             main_window.inner_size().width,
-                //             main_window.inner_size().height,
-                //         );
-                //         log::info!("Canvas size: {:?}", main_window.inner_size());
-
-                //     }
-                // }
                 *self.state.as_mut().unwrap() = state;
-                
             }
         }  
         
@@ -485,20 +364,6 @@ impl ApplicationHandler<CustomUserEvent> for App {
         window_id: WindowId,
         event: WindowEvent,
     ) {
-        // if let Some(state) = self.state.as_mut() {
-        //     if let Some(ctx) = state.ctx.as_mut() {
-        //         ctx.set_size(UVec2::new(1920, 1080));
-        //     }
-        // }
-        // let window: Option<&Arc<Window>> = None;
-        // if let Some(state) = self.state.as_mut() {
-        //     let Some(window) = state.window.as_ref() else {
-        //         return;
-        //     };
-        // };
-        // if window.unwrap().id() != window_id {
-        //     return;
-        // }
         match event {
             WindowEvent::CloseRequested => {
                 event_loop.exit();
@@ -508,40 +373,11 @@ impl ApplicationHandler<CustomUserEvent> for App {
                     if let Some(ctx) = state.ctx.as_mut() {
                         ctx.set_size(UVec2::new(1920, 1080));
                     }
-                }
-                //state.ctx.unwrap().set_size(UVec2::new(1920, 1080));
-                // if let Some(ctx) = state.ctx {
-                //     ctx.set_size(UVec2::new(new_size.width, new_size.height));
-                //     //ctx.set_size(UVec2::new(1920, 1080));
-                // }
-                if let Some(state) = self.state.as_mut() {
                     if let Some(window) = state.window.as_mut() {
                         window.request_redraw();
                     }
                 }
             }
-            // WindowEvent::Resized(new_size) => {
-            //     if let Some(ctx) = self.ctx.as_mut() {
-            //         ctx.set_size(UVec2::new(new_size.width, new_size.height));
-            //     }
-            //     if let Some(cam) = self.camera.as_mut() {
-            //         let mut c = cam.get();
-            //         // ortho: lewy=0, prawy=width, dół=height, góra=0; szeroki zakres Z
-            //         c.set_projection(
-            //             renderling::math::Mat4::orthographic_rh(
-            //                 0.0,
-            //                 new_size.width as f32,
-            //                 new_size.height as f32,
-            //                 0.0,
-            //                 -1000.0,
-            //                 1000.0,
-            //             )
-            //         );
-            //         cam.set(c);
-            //     }
-            //     window.request_redraw();
-            // }
-
             WindowEvent::RedrawRequested => {
                 if let Some(state) = self.state.as_mut() {
                     if let (Some(ctx), Some(stage)) = (state.ctx.as_ref(), state.stage.as_ref()) {
@@ -608,23 +444,21 @@ impl ApplicationHandler<CustomUserEvent> for App {
                             winit::keyboard::KeyCode::KeyW => move_cam += forward,
                             winit::keyboard::KeyCode::KeyA => move_cam += right,
                             winit::keyboard::KeyCode::KeyD => move_cam -= right,
-                            winit::keyboard::KeyCode::Space => move_cam += up,      // w górę/dół, w zależności jak wolisz
+                            winit::keyboard::KeyCode::Space => move_cam += up,
                             winit::keyboard::KeyCode::ShiftLeft => move_cam -= up,
                             _ => {}
                         }
                         if move_cam.length_squared() > 0.0 {
                             let delta = move_cam.normalize() * speed;
 
-                            // przesunięcie pozycji kamery
                             let new_eye = eye + delta;
 
-                            // przelicz view po przesunięciu
                             c.view = renderling::math::Mat4::look_at_rh(
                                 new_eye,
                                 new_eye + forward,
                                 up
                             );
-                            c.position = new_eye; // jeśli Camera przechowuje position – fajnie to aktualizować
+                            c.position = new_eye;
                         }
 
                         cam.set(c);
@@ -643,7 +477,7 @@ impl ApplicationHandler<CustomUserEvent> for App {
 
 pub fn run() -> anyhow::Result<()> {
     let event_loop = winit::event_loop::EventLoop::<CustomUserEvent>::with_user_event().build()?;
-    let mut app = App::new(&event_loop);//App::default();
+    let mut app = App::new(&event_loop);
 
     #[cfg(not(target_arch = "wasm32"))]
     event_loop.set_control_flow(ControlFlow::Poll);
