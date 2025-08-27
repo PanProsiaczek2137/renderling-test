@@ -19,11 +19,20 @@ use winit::{
 const WASM_CANVAS_ID: &str = "app-canvas";
 const WASM_CREATE_WINDOW: bool = true;
 
+pub struct ImageObject {
+    pub name: String,
+    pub vertices: HybridArray<Vertex>,
+    pub renderlet: Hybrid<Renderlet>,
+    pub material: Hybrid<Material>,
+}
+
 #[derive(Default)]
 pub struct State {
     window: Option<Arc<Window>>,
     ctx: Option<Context>,
     stage: Option<Stage>,
+
+    pub images: std::collections::HashMap<String, ImageObject>, 
 
     // UCHWYTY muszą żyć tak długo, jak scena jest renderowana:
     camera: Option<Hybrid<Camera>>,
@@ -217,7 +226,6 @@ impl State {
 
 
 
-
         let sun = stage.new_value(renderling::pbr::light::DirectionalLight {
             // kierunek, w którym "świeci" (z góry w dół i trochę z boku)
             direction: vec3(0.5, -1.0, 0.2).normalize(),
@@ -247,6 +255,9 @@ impl State {
             ctx: Some(ctx),
             stage: Some(stage),
             camera: Some(camera),
+
+            images: std::collections::HashMap::new(),
+
             vertices: Some(vertices),
             triangle: Some(triangle),
             vertices2: Some(vertices2),
@@ -269,6 +280,60 @@ impl State {
             yaw: 0.0, 
             pitch: 0.0
         })
+    }
+
+    pub fn add_image_quad(
+        &mut self,
+        name: String,
+        texture: Hybrid<AtlasTexture>, // << przekazujemy Hybrid zamiast u32
+        width: u32,
+        height: u32,
+        x: i32,
+        y: i32,
+        z: i32,
+    ) {
+        let stage = self.stage.as_ref().expect("Stage not initialized");
+        let cam   = self.camera.as_ref().expect("Camera not initialized");
+
+        let w = width as f32;
+        let h = height as f32;
+
+        let x = x as f32;
+        let y = y as f32;
+        let z = z as f32;
+
+        let vertices = stage.new_array([
+            Vertex::default().with_position([x,     y,     z]).with_uv0([0.0, 1.0]),
+            Vertex::default().with_position([x+w,   y,     z]).with_uv0([1.0, 1.0]),
+            Vertex::default().with_position([x,     y+h,   z]).with_uv0([0.0, 0.0]),
+
+            Vertex::default().with_position([x+w,   y,     z]).with_uv0([1.0, 1.0]),
+            Vertex::default().with_position([x+w,   y+h,   z]).with_uv0([1.0, 0.0]),
+            Vertex::default().with_position([x,     y+h,   z]).with_uv0([0.0, 0.0]),
+        ]);
+
+        let mut mat = Material::default();
+        mat.albedo_texture_id = texture.id(); // << poprawne Id<AtlasTexture>
+        let mat = stage.new_value(mat);
+
+        let renderlet = stage.new_value(Renderlet {
+            camera_id: cam.id(),
+            vertices_array: vertices.array(),
+            material_id: mat.id(),
+            ..Default::default()
+        });
+
+        stage.add_renderlet(&renderlet);
+
+        self.images.insert(
+            name.clone(),
+            ImageObject {
+                name,
+                vertices,
+                renderlet,
+                material: mat,
+            },
+        );
     }
 }
 
@@ -321,7 +386,26 @@ impl ApplicationHandler<CustomUserEvent> for App {
         let window = Arc::new(event_loop.create_window(window_attributes).expect("create window"));
 
         #[cfg(not(target_arch = "wasm32"))]{
-            let state: State = pollster::block_on(State::new(window.clone())).expect("state init");
+            let mut state: State = pollster::block_on(State::new(window.clone())).expect("state init");
+
+
+            
+            // --- wczytaj obraz i dodaj quad ---
+            let atlas_img = renderling::atlas::AtlasImage::from_path("assets/obraz.png")
+                .expect("brak assets/obraz.png");
+            let entries = state.stage.as_ref().unwrap()
+                .add_images([atlas_img])
+                .expect("Nie udało się dodać obrazu do atlasu");
+            let tex = entries[0].clone();
+
+            state.add_image_quad(
+                "quad1".to_string(),
+                tex,
+                30, 20,  // width, height
+                0, 0, 0  // x, y, z
+            );
+
+
             self.state = Some(state);
         }
 
@@ -343,9 +427,11 @@ impl ApplicationHandler<CustomUserEvent> for App {
 
         let _ = self.state;
 
+
+
     }
 
-        fn user_event(
+    fn user_event(
         &mut self,
         event_loop: &winit::event_loop::ActiveEventLoop,
         event: CustomUserEvent,
