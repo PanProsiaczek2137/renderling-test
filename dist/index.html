@@ -3,15 +3,10 @@
 	<head>
 		<meta charset="utf-8" />
 		<title>Renderling + Winit (WASM)</title>
-	<link rel="modulepreload" href="/renderling_test-625786bd2dffb2b0.js" crossorigin="anonymous" integrity="sha384-CjwjgYCriCNiyo2cPmLXKpbMGBUGBLf3BSRSJpcFtVxHdPHZT2JAQbJbBQgUgWBT"><link rel="preload" href="/renderling_test-625786bd2dffb2b0_bg.wasm" crossorigin="anonymous" integrity="sha384-2JyHWMtiogc7K0QO3wkPzILc8gfVIoicn7LKPOrkerAMsXtffa6uCkica+r71t00" as="fetch" type="application/wasm"></head>
-	<body style="margin:0; overflow:hidden;">
-		<canvas id="app-canvas" style="display:block; width:100px; height:100px;"></canvas>
-		<script type="module">
-		</script>
-	
+		
 <script type="module">
-import init, * as bindings from '/renderling_test-625786bd2dffb2b0.js';
-const wasm = await init({ module_or_path: '/renderling_test-625786bd2dffb2b0_bg.wasm' });
+import init, * as bindings from '/renderling_test-532412d1d6ce387b.js';
+const wasm = await init({ module_or_path: '/renderling_test-532412d1d6ce387b_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -19,7 +14,13 @@ window.wasmBindings = bindings;
 
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
-</script><script>"use strict";
+</script>
+	<link rel="modulepreload" href="/renderling_test-532412d1d6ce387b.js" crossorigin="anonymous" integrity="sha384-HhtR7gX1K3pi4lEzBXbxD1xoOJgEu4yawGoVYc+sQ66kYKFAM19TZsvRsklHx7Xm"><link rel="preload" href="/renderling_test-532412d1d6ce387b_bg.wasm" crossorigin="anonymous" integrity="sha384-xBn41FAVTHyLsUogFUT0nZy+ACtAm6C74fwTB3to7FGrI3zWdV5yKK9WEDKQp9CX" as="fetch" type="application/wasm"></head>
+	<body style="margin:0; overflow:hidden;">
+		<canvas id="app-canvas" width="800" height="600" style="display:block; width:100px; height:100px;"></canvas>
+		<script type="module">
+		</script>
+	<script>"use strict";
 
 (function () {
 

@@ -1,36 +1,34 @@
 [package]
 name = "renderling_test"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+resolver = "2"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "renderling_native"
+name = "renderling_test_bin"
 path = "src/main.rs"
-# required-features = ["native"]
-
-[features]
-default = []
-native = []
 
 [dependencies]
-winit = {version = "0.30"}
-anyhow = "1.0.99"
-wgpu = { version = "22.1.0", features = ["webgl"] }
-pollster = "0.4.0"
-renderling = { version = "0.4.9", features = ["gltf", "winit", "wasm"] }
+# renderling = { git = "https://github.com/schell/renderling", features = ["gltf", "winit"], branch = "fix/wasm" } 
+renderling = { path = "deps/renderling/crates/renderling", features = ["gltf", "winit"] }
+
 wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["Window", "Document", "HtmlCanvasElement"] }
 console_error_panic_hook = "0.1"
 log = "0.4"
+wasm-logger = "0.2"
+anyhow = "1.0.99"
+pollster = "0.4.0"
+js-sys = "0.3.77"
+palette = "0.7.6"
+winit = {version = "0.30"}
 env_logger = "0.11.8"
-console_log = "1.0.0"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
+once_cell = "1.21.3"
 web-sys = { version = "0.3", features = ["Window","Document","HtmlCanvasElement"] }
-console_error_panic_hook = "0.1"
+wasm-bindgen-futures = "0.4"
+glam = "0.30.5"
+craballoc = "0.2.3"
+wgpu = "26.0.1"
+console_log = "1.0.0"
