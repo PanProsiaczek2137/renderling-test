@@ -12,8 +12,7 @@ name = "renderling_test_bin"
 path = "src/main.rs"
 
 [dependencies]
-# renderling = { git = "https://github.com/schell/renderling", features = ["gltf", "winit"], branch = "fix/wasm" } 
-renderling = { path = "deps/renderling/crates/renderling", features = ["gltf", "winit"] }
+renderling = { git = "https://github.com/schell/renderling.git", features = ["wasm"], branch = "fix/wasm" } 
 
 wasm-bindgen = "0.2"
 console_error_panic_hook = "0.1"

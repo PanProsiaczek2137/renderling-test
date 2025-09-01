@@ -1549,10 +1549,13 @@ checksum = "f5e54036fe321fd421e10d732f155734c4e4afd610dd556d9a82833ab3ee0bed"
 [[package]]
 name = "loading-bytes"
 version = "0.1.1"
+source = "git+https://github.com/schell/renderling.git?branch=fix%2Fwasm#086aae5b432b96655558223a671b6eb1deedeca5"
 dependencies = [
  "async-fs",
  "js-sys",
  "send_wrapper",
+ "serde",
+ "serde_json",
  "snafu 0.8.8",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -2635,6 +2638,7 @@ checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 [[package]]
 name = "renderling"
 version = "0.6.0"
+source = "git+https://github.com/schell/renderling.git?branch=fix%2Fwasm#086aae5b432b96655558223a671b6eb1deedeca5"
 dependencies = [
  "async-channel 1.9.0",
  "bytemuck",
@@ -2643,7 +2647,6 @@ dependencies = [
  "crabslab",
  "crunch",
  "dagga",
- "futures-lite 1.13.0",
  "glam 0.30.5",
  "gltf",
  "glyph_brush",
@@ -2663,6 +2666,7 @@ dependencies = [
  "similarity",
  "snafu 0.8.8",
  "spirv-std 0.9.0 (git+https://github.com/LegNeato/rust-gpu.git?rev=425328a)",
+ "wasm-bindgen",
  "wgpu",
  "winit",
 ]
@@ -2670,6 +2674,7 @@ dependencies = [
 [[package]]
 name = "renderling_build"
 version = "0.1.0"
+source = "git+https://github.com/schell/renderling.git?branch=fix%2Fwasm#086aae5b432b96655558223a671b6eb1deedeca5"
 dependencies = [
  "log",
  "naga",
