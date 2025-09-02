@@ -16,6 +16,8 @@ use winit::{
 
 use renderling::prelude::SlabAllocator;
 
+mod req_animation_frame;
+
 const WASM_CANVAS_ID: &str = "app-canvas";
 const WASM_CREATE_WINDOW: bool = true;
 const SIZE_OF_WORLD: f32 = 0.01;
@@ -79,7 +81,6 @@ pub struct WindowState {
     pub position: [i32; 2],
 
     ctx: renderling::Context,
-    slab: SlabAllocator<craballoc::prelude::WgpuRuntime>,
     stage: Stage,
     tex: std::collections::HashMap<String, Hybrid<AtlasTexture>>,
     camera: Camera,
@@ -115,6 +116,13 @@ impl State {
         };
 
         if let Some(win) = window {
+            let mut size = win.inner_size();
+            while size.width == 0 || size.height == 0 {
+                log::info!("window has zero size, waiting for window to init");
+                req_animation_frame::next_animation_frame().await;
+                size = win.inner_size();
+            }
+            log::info!("adding window with size {size:?}");
             state
                 .add_window(0, win, palette::Srgba::new(0.1, 0.2, 0.3, 1.0))
                 .await?;
@@ -136,6 +144,7 @@ impl State {
             .unwrap_or([0, 0]);
 
         let ctx = Context::from_winit_window(None, window.clone()).await;
+        log::info!("created Context with size: {}", ctx.get_size());
 
         let stage = ctx
             .new_stage()
@@ -152,7 +161,6 @@ impl State {
             id,
             WindowState {
                 ctx,
-                slab,
                 stage,
                 tex: std::collections::HashMap::new(),
                 camera,
@@ -233,7 +241,7 @@ impl State {
         let height = tex_meta.size_px.y as f32 * SIZE_OF_WORLD;
 
         // 4. budujemy vertexy
-        let vertices = ws.slab.new_array([
+        let vertices = ws.stage.new_vertices([
             Vertex::default()
                 .with_position([x, y, z])
                 .with_uv0([0.0, 1.0]),
@@ -270,10 +278,9 @@ impl State {
         // 5. materiał
         let mut mat = Material::default();
         mat.albedo_texture_id = texture.id();
-        let mat = ws.slab.new_value(mat);
+        let mat = ws.stage.new_material(mat);
 
-        let renderlet = ws.slab.new_value(Renderlet {
-            //camera_id: cam.id(),
+        let renderlet = ws.stage.new_renderlet(Renderlet {
             vertices_array: vertices.array(),
             material_id: mat.id(),
             ..Default::default()
@@ -335,7 +342,7 @@ impl State {
         }
 
         // Tworzymy nowy HybridArray w stage
-        let new_hybrid = ws.slab.new_array(image.vertices_cpu.clone());
+        let new_hybrid = ws.stage.new_vertices(image.vertices_cpu.clone());
 
         // Aktualizujemy renderlet
         let mut renderlet = image.renderlet.get();
@@ -393,7 +400,7 @@ impl State {
         image.vertices_cpu[5].position = [x0, y0 + h, z0].into(); // (0,h)
 
         // Aktualizacja na GPU
-        let new_hybrid = ws.slab.new_array(image.vertices_cpu.clone());
+        let new_hybrid = ws.stage.new_vertices(image.vertices_cpu.clone());
         let mut renderlet = image.renderlet.get();
         renderlet.vertices_array = new_hybrid.array();
         image.renderlet.set(renderlet);
@@ -438,7 +445,7 @@ impl State {
             vertex.position = rotated + origin;
         }
 
-        let new_hybrid = ws.slab.new_array(image.vertices_cpu.clone());
+        let new_hybrid = ws.stage.new_vertices(image.vertices_cpu.clone());
         let mut renderlet = image.renderlet.get();
         renderlet.vertices_array = new_hybrid.array();
         image.renderlet.set(renderlet);
@@ -593,8 +600,9 @@ impl ApplicationHandler<CustomUserEvent> for App {
                 let window = web_sys::window().unwrap();
                 let document = window.document().unwrap();
                 let canvas = document.get_element_by_id(WASM_CANVAS_ID).unwrap();
-                let html_canvas_element = canvas.unchecked_into();
-                window_attributes = window_attributes.with_canvas(Some(html_canvas_element));
+                let html_canvas_element: web_sys::HtmlCanvasElement = canvas.unchecked_into();
+
+                window_attributes = window_attributes.with_canvas(Some(html_canvas_element))
             }
 
             let window = Arc::new(
@@ -602,6 +610,7 @@ impl ApplicationHandler<CustomUserEvent> for App {
                     .create_window(window_attributes)
                     .expect("create window"),
             );
+            log::info!("window.size: {:?}", window.inner_size());
             let proxy = self.proxy.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 assert!(proxy
